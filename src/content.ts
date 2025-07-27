@@ -3,9 +3,14 @@
 console.log('[Cull Pilot] script loaded');
 
 let insertMode = false;
-const defaultOverlayMessage = '⭐ -- INSERT MODE -— [1–5] to rate, [h] for Prev, [l] for Next, [Esc] to quit';
 
-// 🟩 Overlay UI
+const defaultOverlayMessage =
+  '% -- INSERT MODE -- [1–5] to rate, [h] for Prev, [l] for Next, [Esc] to quit';
+
+let overlayStatusSuffix = '';
+let overlayResetTimer: number | undefined;
+
+// Overlay UI
 function showOverlay(text = defaultOverlayMessage): void {
   const existing = document.getElementById('cullpilot-overlay');
   if (existing) return;
@@ -14,36 +19,72 @@ function showOverlay(text = defaultOverlayMessage): void {
   overlay.id = 'cullpilot-overlay';
   overlay.innerText = text;
   overlay.style.position = 'fixed';
-  overlay.style.bottom = '20px';
-  overlay.style.right = '20px';
+  overlay.style.bottom = '0px';
+  overlay.style.left = '0px';
+  overlay.style.width = '100%';
   overlay.style.padding = '10px 16px';
   overlay.style.background = 'rgba(0,0,0,0.8)';
   overlay.style.color = '#fff';
   overlay.style.fontSize = '14px';
   overlay.style.fontFamily = 'monospace';
   overlay.style.zIndex = '9999';
-  overlay.style.borderRadius = '6px';
   overlay.style.boxShadow = '0 0 5px rgba(0,0,0,0.3)';
   document.body.appendChild(overlay);
 }
 
+// Remove overlay
 function removeOverlay(): void {
   document.getElementById('cullpilot-overlay')?.remove();
-}
-
-function updateOverlayText(text = defaultOverlayMessage): void {
-  const overlay = document.getElementById('cullpilot-overlay');
-  if (overlay) {
-    overlay.innerText = text;
+  overlayStatusSuffix = '';
+  if (overlayResetTimer) {
+    clearTimeout(overlayResetTimer);
+    overlayResetTimer = undefined;
   }
 }
 
-// 🔍 Get current star buttons if available
+// Update overlay content
+function updateOverlayText(prefix = defaultOverlayMessage): void {
+  const overlay = document.getElementById('cullpilot-overlay');
+  if (overlay) {
+    overlay.innerText = `${prefix}${overlayStatusSuffix}`;
+  }
+}
+
+// Show a suffix temporarily, then revert
+function setTemporarySuffix(message: string, durationMs = 1500): void {
+  overlayStatusSuffix = ` - ${message}`;
+  updateOverlayText();
+
+  if (overlayResetTimer) clearTimeout(overlayResetTimer);
+  overlayResetTimer = window.setTimeout(() => {
+    overlayStatusSuffix = '';
+    updateOverlayText();
+    overlayResetTimer = undefined;
+  }, durationMs);
+}
+
+// Get current image rating
+function getCurrentRating(): number {
+  const stars = getStarButtons();
+
+  for (let i = 0; i < stars.length; i++) {
+    const icon = stars[i].querySelector('.button-icon');
+    if (icon?.classList.contains('star-on-btn-icon')) {
+      continue; // active star, keep going
+    } else {
+      return i; // first inactive = current rating is i
+    }
+  }
+
+  return stars.length; // all stars active
+}
+
+// Get current star buttons if available
 function getStarButtons(): NodeListOf<HTMLButtonElement> {
   return document.querySelectorAll<HTMLButtonElement>('.synofoto-lightbox-info-rating button');
 }
 
-// 🔘 Click info panel button
+// Click info panel button
 function openInfoPanel(): boolean {
   const panelContainer = document.querySelector('.synofoto-lightbox-info-panel-container');
 
@@ -63,7 +104,7 @@ function openInfoPanel(): boolean {
   return true;
 }
 
-// ⏳ Wait for stars to appear, then rate
+// Wait for stars to appear, then rate
 function waitForStarsThen(rateValue: number): void {
   const container = document.querySelector('.synofoto-lightbox-info-panel-container');
   if (!container) {
@@ -76,8 +117,7 @@ function waitForStarsThen(rateValue: number): void {
     if (stars.length >= rateValue) {
       console.log(`[Cull Pilot] Stars appeared, rating ${rateValue}★`);
       stars[rateValue - 1].click();
-      updateOverlayText('⭐ Rated ✔');
-      setTimeout(() => updateOverlayText(), 1000);
+      setTemporarySuffix('⭐️'.repeat(rateValue));
       observer.disconnect();
     }
   });
@@ -85,20 +125,35 @@ function waitForStarsThen(rateValue: number): void {
   observer.observe(container, { childList: true, subtree: true });
 }
 
-// 🌟 Rate photo with panel enforcement
+// Rate photo with panel enforcement
 function ratePhoto(desiredRating: number = 5): void {
   const stars = getStarButtons();
+  const currentRating = getCurrentRating();
 
-  if (stars.length >= desiredRating) {
-    console.log(`[Cull Pilot] Rating immediately: ${desiredRating}★`);
-    stars[desiredRating - 1].click();
-    updateOverlayText('⭐ Rated ✔');
-    setTimeout(() => updateOverlayText(), 1000);
+  // Case: Unrate
+  if (desiredRating === 0 || desiredRating === currentRating) {
+    if (currentRating === 0) {
+      console.log('[Cull Pilot] No rating to clear');
+      setTemporarySuffix('Cleared'); // or '—' or '…'
+      return;
+    }
+    console.log('[Cull Pilot] Clearing rating');
+    stars[currentRating - 1].click(); // clicking same star removes it
+    setTemporarySuffix('Cleared'); // or 'Cleared', or blank
     return;
   }
 
-  console.log(`[Cull Pilot] Stars not ready, ensuring info panel is open then rating ${desiredRating}★`);
-  const opened = openInfoPanel(); // attempt to open the panel
+  // Case: Apply new rating
+  if (stars.length >= desiredRating) {
+    console.log(`[Cull Pilot] Rating ${desiredRating}★`);
+    stars[desiredRating - 1].click();
+    setTemporarySuffix('⭐️'.repeat(desiredRating));
+    return;
+  }
+
+  // Case: Fallback async wait
+  console.log(`[Cull Pilot] Stars not ready, opening info panel to rate ${desiredRating}★`);
+  const opened = openInfoPanel();
   if (opened) {
     waitForStarsThen(desiredRating);
   } else {
@@ -106,6 +161,7 @@ function ratePhoto(desiredRating: number = 5): void {
   }
 }
 
+// Navigation with vim motion
 function navigate(direction: "left" | "right"): void {
   const selector =
     direction === "left"
@@ -116,10 +172,7 @@ function navigate(direction: "left" | "right"): void {
 
   if (!btn || btn.classList.contains("hidden")) {
     console.warn(`[Cull Pilot] No ${direction} button — likely at edge of album`);
-    updateOverlayText(`🚫 Can't go ${direction === "left" ? "←" : "→"}`);
-    setTimeout(() => {
-      updateOverlayText();
-    }, 1000);
+    setTemporarySuffix(`🚫 Can't go ${direction === "left" ? "←" : "→"}`);
     return;
   }
 
@@ -127,11 +180,12 @@ function navigate(direction: "left" | "right"): void {
   btn.click();
 }
 
+// Check if Cull Pilot can be turned on
 function isInLightbox(): boolean {
   return document.querySelector('.synofoto-lightbox-wrapper') !== null;
 }
 
-// 👀 Monitor DOM for lightbox exit
+// Monitor DOM for lightbox exit
 const observer = new MutationObserver(() => {
   const lightbox = document.querySelector('.synofoto-lightbox-wrapper');
   if (!lightbox && insertMode) {
@@ -144,7 +198,7 @@ const observer = new MutationObserver(() => {
 // Start observing body for subtree DOM removals
 observer.observe(document.body, { childList: true, subtree: true });
 
-// 🎮 Keybindings
+// Keybindings
 document.addEventListener('keydown', (e) => {
   if (!e || e.repeat) return;
 
@@ -176,7 +230,7 @@ document.addEventListener('keydown', (e) => {
   }
 
   if (insertMode) {
-    if (/^[1-5]$/.test(e.key)) {
+    if (/^[0-5]$/.test(e.key)) {
       const rating = parseInt(e.key);
       console.log(`[Cull Pilot] Rating requested: ${rating}★`);
       ratePhoto(rating);
