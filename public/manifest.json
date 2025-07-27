@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Cull Pilot",
+  "version": "1.0.0",
+
+  "description": "Rate, tag, and sort with purpose — fuel smarter albums",
+  "permissions": ["scripting", "activeTab"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "images/icon48.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"]
+    }
+  ]
+}
+
