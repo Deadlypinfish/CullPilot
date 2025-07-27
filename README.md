@@ -7,7 +7,7 @@ just your keyboard — no mouse required.
 Keyboard-first metadata assistant for Synology Photos — cull faster, 
 tag smarter, and build dynamic albums.
 
-![screenshot](docs/screenshot.png)
+![screenshot](docs/screenshot.jpg)
 
 
 ## Features
