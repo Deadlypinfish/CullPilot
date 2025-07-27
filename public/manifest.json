@@ -4,7 +4,8 @@
   "version": "1.0.0",
 
   "description": "Rate, tag, and sort with purpose — fuel smarter albums",
-  "permissions": ["scripting", "activeTab"],
+
+  "permissions": [],
   "action": {
     "default_popup": "popup.html",
     "default_icon": "images/icon-48.png"
@@ -17,7 +18,13 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "https://*/?launchApp=SYNO.Foto.AppInstance*",
+        "https://*/#?launchApp=SYNO.Foto.AppInstance*",
+        "https://*/#/*launchApp=SYNO.Foto.AppInstance*",
+        "https://*/*launchApp=SYNO.Foto.AppInstance*"
+      ],
+
       "js": ["content.js"]
     }
   ],

@@ -5,7 +5,8 @@ console.log('[Cull Pilot] script loaded');
 let insertMode = false;
 
 const defaultOverlayMessage =
-  '% -- INSERT MODE -- [1–5] to rate, [h] for Prev, [l] for Next, [Esc] to quit';
+  //'% -- INSERT MODE -- [1–5] to rate, [h] for Prev, [l] for Next, [Esc] to quit';
+  '-- INSERT MODE --';
 
 let overlayStatusSuffix = '';
 let overlayResetTimer: number | undefined;
@@ -52,7 +53,7 @@ function updateOverlayText(prefix = defaultOverlayMessage): void {
 
 // Show a suffix temporarily, then revert
 function setTemporarySuffix(message: string, durationMs = 1500): void {
-  overlayStatusSuffix = ` - ${message}`;
+  overlayStatusSuffix = ` ${message}`;
   updateOverlayText();
 
   if (overlayResetTimer) clearTimeout(overlayResetTimer);
