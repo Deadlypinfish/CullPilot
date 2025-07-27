@@ -91,6 +91,10 @@ Contributions, issues, and suggestions are welcome.
 
 If you've built a custom fork for a different photo tool, let us know — we may support multiple platforms in the future.
 
+## Support
+If Cull Pilot saved you time or improved your workflow, you can support the project here
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/randomthingsdev)
 
 ## License
 
