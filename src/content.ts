@@ -1,7 +1,5 @@
 // src/content.ts
 
-console.log('[Cull Pilot] script loaded');
-
 let insertMode = false;
 
 const defaultOverlayMessage =
@@ -90,17 +88,14 @@ function openInfoPanel(): boolean {
   const panelContainer = document.querySelector('.synofoto-lightbox-info-panel-container');
 
   const isOpen = panelContainer?.classList.contains('expended');
-  console.log(`[Cull Pilot] Info panel is ${isOpen ? 'already open' : 'closed, opening now'}`);
 
   if (isOpen) return true;
 
   const btn = document.querySelector('.info-dark-btn-icon')?.closest('button') as HTMLButtonElement | null;
   if (!btn) {
-    console.warn('[Cull Pilot] Could not find info panel button.');
     return false;
   }
 
-  console.log('[Cull Pilot] Clicking info panel button...');
   btn.click();
   return true;
 }
@@ -109,14 +104,12 @@ function openInfoPanel(): boolean {
 function waitForStarsThen(rateValue: number): void {
   const container = document.querySelector('.synofoto-lightbox-info-panel-container');
   if (!container) {
-    console.warn('[Cull Pilot] Info panel container not found');
     return;
   }
 
   const observer = new MutationObserver(() => {
     const stars = getStarButtons();
     if (stars.length >= rateValue) {
-      console.log(`[Cull Pilot] Stars appeared, rating ${rateValue}★`);
       stars[rateValue - 1].click();
       setTemporarySuffix('⭐️'.repeat(rateValue));
       observer.disconnect();
@@ -134,11 +127,9 @@ function ratePhoto(desiredRating: number = 5): void {
   // Case: Unrate
   if (desiredRating === 0 || desiredRating === currentRating) {
     if (currentRating === 0) {
-      console.log('[Cull Pilot] No rating to clear');
       setTemporarySuffix('Cleared'); // or '—' or '…'
       return;
     }
-    console.log('[Cull Pilot] Clearing rating');
     stars[currentRating - 1].click(); // clicking same star removes it
     setTemporarySuffix('Cleared'); // or 'Cleared', or blank
     return;
@@ -146,20 +137,16 @@ function ratePhoto(desiredRating: number = 5): void {
 
   // Case: Apply new rating
   if (stars.length >= desiredRating) {
-    console.log(`[Cull Pilot] Rating ${desiredRating}★`);
     stars[desiredRating - 1].click();
     setTemporarySuffix('⭐️'.repeat(desiredRating));
     return;
   }
 
   // Case: Fallback async wait
-  console.log(`[Cull Pilot] Stars not ready, opening info panel to rate ${desiredRating}★`);
   const opened = openInfoPanel();
   if (opened) {
     waitForStarsThen(desiredRating);
-  } else {
-    console.warn('[Cull Pilot] Could not open info panel — rating aborted');
-  }
+  } 
 }
 
 // Navigation with vim motion
@@ -172,12 +159,10 @@ function navigate(direction: "left" | "right"): void {
   const btn = document.querySelector<HTMLButtonElement>(selector);
 
   if (!btn || btn.classList.contains("hidden")) {
-    console.warn(`[Cull Pilot] No ${direction} button — likely at edge of album`);
     setTemporarySuffix(`🚫 Can't go ${direction === "left" ? "←" : "→"}`);
     return;
   }
 
-  console.log(`[Cull Pilot] Navigating ${direction}`);
   btn.click();
 }
 
@@ -192,7 +177,6 @@ const observer = new MutationObserver(() => {
   if (!lightbox && insertMode) {
     insertMode = false;
     removeOverlay();
-    console.log('[Cull Pilot] Lightbox closed — exiting insert mode');
   }
 });
 
@@ -205,18 +189,15 @@ document.addEventListener('keydown', (e) => {
 
   if (e.key === 'i' && !insertMode) {
     if (!isInLightbox()) {
-      console.warn("[Cull Pilot] Not in lightbox — can't enter insert mode");
       return;
     }
 
     const panelOpened = openInfoPanel();
     if (panelOpened) {
       insertMode = true;
-      console.log('[Cull Pilot] Entering insert mode and opening info panel');
       showOverlay();
     } else {
       insertMode = false;
-      console.warn('[Cull Pilot] Failed to open info panel');
     }
     return;
   }
@@ -226,14 +207,12 @@ document.addEventListener('keydown', (e) => {
     e.preventDefault();
     insertMode = false;
     removeOverlay();
-    console.log('[Cull Pilot] Exiting insert mode');
     return;
   }
 
   if (insertMode) {
     if (/^[0-5]$/.test(e.key)) {
       const rating = parseInt(e.key);
-      console.log(`[Cull Pilot] Rating requested: ${rating}★`);
       ratePhoto(rating);
       return;
     }
