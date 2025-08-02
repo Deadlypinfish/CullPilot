@@ -7,6 +7,16 @@ just your keyboard — no mouse required.
 Keyboard-first metadata assistant for Synology Photos — cull faster, 
 tag smarter, and build dynamic albums.
 
+
+## Install
+
+Available for:
+
+[Chrome Web Store](https://chromewebstore.google.com/detail/cull-pilot/lfdchihfcofnnhibjfgcdngbkpacjanm)
+
+[Firefox Add-ons](https://addons.mozilla.org/en-US/firefox/addon/cull-pilot/)
+
+
 ![screenshot](docs/screenshot.jpg)
 
 
