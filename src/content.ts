@@ -78,18 +78,22 @@ function getCurrentRating(): number {
 
 // Get current star buttons if available
 function getStarButtons(): NodeListOf<HTMLButtonElement> {
-    return document.querySelectorAll<HTMLButtonElement>('.synofoto-lightbox-info-rating button');
+    return document.querySelectorAll<HTMLButtonElement>(
+        '.synofoto-lightbox-info-rating button');
 }
 
 // Click info panel button
 function openInfoPanel(): boolean {
-    const panelContainer = document.querySelector('.synofoto-lightbox-info-panel-container');
+    const panelContainer = document.querySelector(
+        '.synofoto-lightbox-info-panel-container');
 
     const isOpen = panelContainer?.classList.contains('expended');
 
     if (isOpen) return true;
 
-    const btn = document.querySelector('.info-dark-btn-icon')?.closest('button') as HTMLButtonElement | null;
+    const btn = document.querySelector('.info-dark-btn-icon')?.closest(
+        'button') as HTMLButtonElement | null;
+
     if (!btn) {
         return false;
     }
@@ -100,7 +104,9 @@ function openInfoPanel(): boolean {
 
 // Wait for stars to appear, then rate
 function waitForStarsThen(rateValue: number): void {
-    const container = document.querySelector('.synofoto-lightbox-info-panel-container');
+    const container = document.querySelector(
+        '.synofoto-lightbox-info-panel-container');
+
     if (!container) {
         return;
     }
